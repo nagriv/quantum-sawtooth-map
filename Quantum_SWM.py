@@ -59,8 +59,6 @@ def qswm_pass(psi, Opp_Uk, Opp_UT):
 #%% 
 """Setting of the parameters for the simulation"""
 
-"Change to false for not create the dataset file"
-ifsave = True 
 
 "Number of qubits for the simulation. For nq >= 16 the output data file can be large"
 nq = 10 
@@ -104,7 +102,7 @@ ang_eigvl =  2 * np.pi * np.arange(dim_H) / dim_H
 # print(r'n:', n_eigvl)
 # print(r'theta:', ang_eigvl)
 
-"Cration of the kick and free evolution operator given the correct order of the eigenvalues"
+"Creation of the kick and free evolution operator given the correct order of the eigenvalues"
 Opp_Uk = U_k(ang_eigvl, k_val)
 Opp_UT = U_T(n_eigvl, T_val)
 
@@ -118,14 +116,51 @@ Opp_UT = U_T(n_eigvl, T_val)
 "With this choice the initial impulse is peaked in n0 = 0"
 n0_list = [dim_H //2]
 
-"With this choice the initial impulse is given by all the possible eigenvalues, the wavefunction is spread and is the equal superposition" 
-# n0_list = np.arange(dim_H) 
-
-
 psi_n0 = np.zeros(shape=dim_H, dtype=np.complex128)
 psi_n0[n0_list] = 1.
 psi_n0 = psi_n0 / np.linalg.norm(psi_n0)
 
 # print(psi_n0)
 
+#%%
 
+"""Creation of the Dataset File"""
+
+"The dataset file will be created in the Data repository.The file contains the wavefunction in the impulse basis at each iteration of the map. The name of the file is given by the nq, k_val and T_val"
+
+"Creation of the file in the Data repository"
+with h5py.File(f'Data/qsm_nq{nq:n}_k{k_val:.2f}_T{T_val:.2f}.h5', 'w') as f:
+
+        
+    grp = f.create_dataset('psi', shape = (1, dim_H), maxshape = (None, dim_H), 
+        dtype = 'complex128', chunks = (1, dim_H), compression='lzf')
+
+    "Save the important parameters"
+    grp.attrs['nq'] = nq
+    grp.attrs['k'] = k_val
+    grp.attrs['T'] = T_val
+
+    "Save the wavefunction at t = 0"
+    grp[0] = psi_n0
+
+    psi_now = rappr_n_to_ang(psi_n0)
+
+    "Evolutions of the wavefunction for n_iterations"
+    for t in range(n_iterations):
+
+        psi_next = qswm_pass(psi_now, Opp_Uk, Opp_UT)
+
+        "Updating the old wavefunction for the next iteration"
+        psi_now = psi_next
+
+        psi_next = rappr_ang_to_n(psi_next) 
+
+        "Updating the dataset size"
+        grp.resize(grp.shape[0] + 1, axis = 0)
+
+        "Save the the wavefunction after the map iteration"    
+        grp[-1] = psi_next
+
+        "Numerical errors can accumulate, causing the wavefunction to lose normalization."
+        if (t % 3000 == 0):
+            psi_now /= np.linalg.norm(psi_now)
