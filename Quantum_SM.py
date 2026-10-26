@@ -57,7 +57,6 @@ def qswm_pass(psi, Opp_Uk, Opp_UT):
 
 
 #%% 
-"""Setting of the parameters for the simulation"""
 
 
 "Number of qubits for the simulation. For nq >= 16 the output data file can be large"
@@ -67,24 +66,25 @@ nq = 10
 dim_H = 2 ** nq 
 
 "Number of the iteration of the QSM. For longer iteration the output can be large"
-n_iterations = 5000
-
-"Kick parameter"
-k_val = np.sqrt(3)
-
-"Period parameter"
-T_val = np.sqrt(2/3) 
+n_iterations = 1000
 
 """The K parameter is the chaos parameter for the QSM, and controls the evolution of the system. 
-For -4 < K < 0, the evolution of the map is stable, instead for K < -4 or K > 0 the evolution is chaotic. 
-Choose k_val and T_val correctly for the right evolution"""
-K_val = k_val * T_val
+For -4 < K < 0, the evolution of the map is stable, instead for K < -4 or K > 0 the evolution is chaotic"""
+K_val = np.sqrt(2)
+
+"Period parameter"
+LL = 67
+T_val = 2 * np.pi * LL / dim_H
+
+"Kick parameter"
+k_val = K_val / T_val
+
 
 "Theoric Localization length. Dynamical localization can be observed only in the chaotic regime"
 loc_len = np.square(k_val * np.pi ) / 3
 
 "The eta parameter expresses the condition for the dynamical localization of the wavefunction. For eta << 1, the dynamical localization is possible; no chaotic behavior"
-eta = loc_len/dim_H
+eta = loc_len / dim_H
 
 
 print(rf'nq:{nq:n}, dim_H:{dim_H:n}, k:{k_val:.2e}, T:{T_val:.2e}, eta:{eta:.2e}')
@@ -129,7 +129,7 @@ psi_n0 = psi_n0 / np.linalg.norm(psi_n0)
 "The dataset file will be created in the Data repository.The file contains the wavefunction in the impulse basis at each iteration of the map. The name of the file is given by the nq, k_val and T_val"
 
 "Creation of the file in the Data repository"
-with h5py.File(f'Data/qsm_nq{nq:n}_k{k_val:.2f}_T{T_val:.2f}.h5', 'w') as f:
+with h5py.File(f'Data/qsm_nq{nq:n}_K{K_val:.2f}_LL{LL:n}_iter{n_iterations:n}.h5', 'w') as f:
 
         
     grp = f.create_dataset('psi', shape = (1, dim_H), maxshape = (None, dim_H), 
