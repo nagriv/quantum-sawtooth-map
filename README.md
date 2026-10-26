@@ -3,9 +3,8 @@
 
 Code for the simulation of the Quantum Sawtooth Map (QSM). 
 The Hamiltonian for the system is:
-
 $$
-\hat{H} = \frac{\hat{n}^2}{2} - \frac{k}{2}(\hat{\theta} - \pi)^2 \sum_{j=-\infty}^{+\infty}\delta(\tau - jT), 
+\hat{H} = \frac{\hat{n}^2}{2} - \frac{k}{2}(\hat{\theta} - \pi)^2 \sum_{j=-\infty}^{+\infty}\delta(\tau - jT)
 $$
 where $\hat{\theta}, \hat{n}$ are the conjugated operator. The wavefunction of the system is periodic in $\theta$: $\psi(\theta + 2 \pi) = \psi(\theta)$. The eigenvalues of $\hat{n}$ can be rescaled using the period $T$ as $p = T n$, and $p$ is taken periodic on $[-\pi L , \pi L)$ with $L \in \mathbb{N}$. For this choice the phase space for the system is a torus of side $2\pi L$. 
 Choosing the number of qubits, $n_q$ for the quantum register, the Hilbert space has dimension $N = 2^{n_q}$.   
